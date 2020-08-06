@@ -2,14 +2,14 @@
 
 ---
 
-### Category Name 1 
+### Tidy Tuesday
 
-[Project 1 Title](/sample_page)
-<img src="images/dummy_thumbnail.jpg?raw=true"/>
+[Week 32: European Energy Production](/sample_page)
+<img src="images/energy.gif?raw=true"/>
 
 ---
-[Project 2 Title](/pdf/sample_presentation.pdf)
-<img src="images/dummy_thumbnail.jpg?raw=true"/>
+[Week 31: Palmer Penguins](/pdf/sample_presentation.pdf)
+<img src="images/palmer_penguins.png?raw=true"/>
 
 ---
 [Project 3 Title](http://example.com/)

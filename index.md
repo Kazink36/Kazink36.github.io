@@ -12,12 +12,9 @@
 <img src="images/palmer_penguins.png?raw=true"/>
 
 ---
-[Project 3 Title](http://example.com/)
-<img src="images/dummy_thumbnail.jpg?raw=true"/>
-
----
 
 ### 36 By Design: ACT and SAT Prep
+
 - [ACT Answer Distribution](https://public.tableau.com/profile/jared.lee6556#!/vizhome/ACTAnswerDistr/Sheet1)
 <img src="images/ACTanswers.png?raw=true"/>
 
@@ -26,10 +23,7 @@
 ### A.I. Sports
 
 - [Predicting Utah Football's Play Calling](/pdf/footballPlayCall.html)
-- [Project 3 Title](http://example.com/)
-- [Project 4 Title](http://example.com/)
-- [Project 5 Title](http://example.com/)
-
+<img src="images/playCallPreview.png?raw=true"/>
 
 ---
 <p style="font-size:11px">Page template forked from <a href="https://github.com/evanca/quick-portfolio">evanca</a></p>

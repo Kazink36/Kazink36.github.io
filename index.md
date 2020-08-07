@@ -4,11 +4,12 @@
 
 ### Tidy Tuesday
 
-[Week 32: European Energy Production](https://github.com/Kazink36/tidyTuesday/tree/master/2020-08-04%20Energy)
+- [Week 32: European Energy Production](https://github.com/Kazink36/tidyTuesday/tree/master/2020-08-04%20Energy)
 <img src="images/energy.gif?raw=true"/>
 
 ---
-[Week 31: Palmer Penguins](https://github.com/Kazink36/tidyTuesday/tree/master/2020-07-28%20Penguins)
+
+- [Week 31: Palmer Penguins](https://github.com/Kazink36/tidyTuesday/tree/master/2020-07-28%20Penguins)
 <img src="images/palmer_penguins.png?raw=true"/>
 
 ---

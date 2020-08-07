@@ -4,11 +4,11 @@
 
 ### Tidy Tuesday
 
-[Week 32: European Energy Production](/sample_page)
+[Week 32: European Energy Production](https://github.com/Kazink36/tidyTuesday/tree/master/2020-08-04%20Energy)
 <img src="images/energy.gif?raw=true"/>
 
 ---
-[Week 31: Palmer Penguins](/pdf/sample_presentation.pdf)
+[Week 31: Palmer Penguins](https://github.com/Kazink36/tidyTuesday/tree/master/2020-07-28%20Penguins)
 <img src="images/palmer_penguins.png?raw=true"/>
 
 ---
@@ -24,6 +24,13 @@
 
 - [Predicting Utah Football's Play Calling](/pdf/footballPlayCall.html)
 <img src="images/playCallPreview.png?raw=true"/>
+
+---
+
+### Other Projects
+
+- [Lending Club Loan Data Analysis](/loans)
+<img src="images/loansPreview.png?raw=true"/>
 
 ---
 <p style="font-size:11px">Page template forked from <a href="https://github.com/evanca/quick-portfolio">evanca</a></p>

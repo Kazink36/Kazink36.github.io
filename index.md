@@ -2,18 +2,6 @@
 
 ---
 
-### Tidy Tuesday
-
-- [Week 32: European Energy Production](https://github.com/Kazink36/tidyTuesday/tree/master/2020-08-04%20Energy)
-<img src="images/energy.gif?raw=true"/>
-
----
-
-- [Week 31: Palmer Penguins](https://github.com/Kazink36/tidyTuesday/tree/master/2020-07-28%20Penguins)
-<img src="images/palmer_penguins.png?raw=true"/>
-
----
-
 ### 36 By Design: ACT and SAT Prep
 
 - [ACT Answer Distribution](https://public.tableau.com/profile/jared.lee6556#!/vizhome/ACTAnswerDistr/Sheet1)
@@ -25,6 +13,18 @@
 
 - [Predicting Utah Football's Play Calling](/pdf/footballPlayCall.html)
 <img src="images/playCallPreview.png?raw=true"/>
+
+---
+
+### Tidy Tuesday
+
+- [Week 32: European Energy Production](https://twitter.com/JaredDLee/status/1290905477069463558)
+<img src="images/energy.gif?raw=true"/>
+
+---
+
+- [Week 31: Palmer Penguins](https://twitter.com/JaredDLee/status/1289219511204245504)
+<img src="images/palmer_penguins.png?raw=true"/>
 
 ---
 

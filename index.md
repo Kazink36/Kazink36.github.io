@@ -30,8 +30,13 @@
 
 ### Other Projects
 
-- [Lending Club Loan Data Analysis](/loans)
+- [Lending Club Loan Data Analysis](/pdf/loans.html)
 <img src="images/loansPreview.png?raw=true"/>
+
+---
+
+- [Unsupervised Machine Learning with Pokemon](/pdf/pokemonClustering.html)
+<img src="images/pokemonPreview.png?raw-true"/>
 
 ---
 <p style="font-size:11px">Page template forked from <a href="https://github.com/evanca/quick-portfolio">evanca</a></p>

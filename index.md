@@ -18,6 +18,11 @@
 
 ### Tidy Tuesday
 
+- [Week 33: Avatar: The Last Airbender](https://twitter.com/JaredDLee/status/1292902346192642049)
+<img src="images/avatar.png?raw=true"/>
+
+---
+
 - [Week 32: European Energy Production](https://twitter.com/JaredDLee/status/1290905477069463558)
 <img src="images/energy.gif?raw=true"/>
 

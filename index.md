@@ -21,6 +21,9 @@
 - [Week 33: Avatar: The Last Airbender](https://twitter.com/JaredDLee/status/1292902346192642049)
 <img src="images/avatar.png?raw=true"/>
 
+- [Character Word Clouds](https://twitter.com/JaredDLee/status/1293634032912068608)
+<img src = "image/zuko_wordcloud.png?raw=true"/>
+
 ---
 
 - [Week 32: European Energy Production](https://twitter.com/JaredDLee/status/1290905477069463558)
@@ -42,6 +45,7 @@
 
 - [Unsupervised Machine Learning with Pokemon](/pdf/pokemonClustering.html)
 <img src="images/pokemonPreview.png?raw-true"/>
+<img src="images/pokemonPreview2.png?raw-true"/>
 
 ---
 <p style="font-size:11px">Page template forked from <a href="https://github.com/evanca/quick-portfolio">evanca</a></p>

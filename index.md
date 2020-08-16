@@ -22,7 +22,7 @@
 <img src="images/avatar.png?raw=true"/>
 
 - [Character Word Clouds](https://twitter.com/JaredDLee/status/1293634032912068608)
-<img src = "image/zuko_wordcloud.png?raw=true"/>
+<img src="image/zuko_wordcloud.png?raw=true"/>
 
 ---
 

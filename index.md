@@ -18,6 +18,11 @@
 
 ### Tidy Tuesday
 
+- [Week 34: Plant Extinction](https://twitter.com/JaredDLee/status/1295750636105953280)
+<img src="images/plant.png?raw=true"/>
+
+---
+
 - [Week 33: Avatar: The Last Airbender](https://twitter.com/JaredDLee/status/1292902346192642049)
 <img src="images/avatar.png?raw=true"/>
 

@@ -18,6 +18,11 @@
 
 ### Tidy Tuesday
 
+- [Week 35: Chopped Cheese](https://twitter.com/JaredDLee/status/1298275467695230982)
+<img src="images/chopped_cheese.png?raw=true"/>
+
+---
+
 - [Week 34: Plant Extinction](https://twitter.com/JaredDLee/status/1295750636105953280)
 <img src="images/plant.png?raw=true"/>
 

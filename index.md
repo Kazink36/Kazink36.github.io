@@ -9,7 +9,10 @@
 
 ---
 
-### A.I. Sports
+### A.I. Sports And College Football
+
+- [Applying Puntalytics's RERUN Model to College Football](/pdf/punts.html)
+<img src="images/punters.png?raw=true"/>
 
 - [Predicting Utah Football's Play Calling](/pdf/footballPlayCall.html)
 <img src="images/playCallPreview.png?raw=true"/>

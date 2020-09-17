@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Jared Lee | @JaredDLee" />
+
+<meta name="date" content="2020-09-16" />
+
+<title>Making Animated Win Probability Charts with cfbscrapR</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Making Animated Win Probability Charts with cfbscrapR</h1>
+<h4 class="author">Jared Lee | <span class="citation">@JaredDLee</span></h4>
+<h4 class="date">2020-09-16</h4>
+
+
+
+<p>Have you ever wanted to make an <a href="https://kazink36.github.io/images/animated_wp_ex_wide.gif">animated win probability chart</a> for college football like <a href="https://twitter.com/LeeSharpeNFL">Lee Sharpe</a> makes for <a href="https://twitter.com/LeeSharpeNFL/status/1300526539344289792">the NFL</a>? This document will walk you step-by-step through the process of adapting <a href="https://github.com/leesharpe/nfldata/blob/master/code/wpchart.R">Sharpe’s code</a> to college football using data from <a href="collegefootballdata.com">CollegeFootballData.com</a> collected using the <code>cfbscrapR</code> package for R.</p>
+<p>-<a href="https://twitter.com/JaredDLee">Jared Lee</a></p>
+<div id="load-packages" class="section level2">
+<h2>Load Packages</h2>
+<p>We’re going to need several packages to generate the winning percentage plot: <code>tidyverse</code> for easy data wrangling, string manipulation, and plotting, <code>glue</code> to easily make the labels, <code>ggimage</code> to put the logos on the plot, and <code>animation</code> to actually build the GIF.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">library</span>(animation)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">library</span>(glue)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">library</span>(ggimage)</span></code></pre></div>
+</div>
+<div id="cfbscrapr" class="section level2">
+<h2>cfbscrapR</h2>
+<p>We’ll start by picking a team and a week and using <code>cfbscrapR</code>’s functions to pull the play-by-play and the game info. <code>cfb_pbp_data()</code> will grab the play-by-play info and make sure that epa_wpa is TRUE to get the win probabilities for the plot. <code>cfb_game_info()</code> will pull the game info such as the home and away team and the result.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>team &lt;-<span class="st"> &quot;Utah&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>week &lt;-<span class="st"> </span><span class="dv">1</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>year &lt;-<span class="st"> </span><span class="dv">2019</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>game_pbp &lt;-<span class="st"> </span>cfbscrapR<span class="op">::</span><span class="kw">cfb_pbp_data</span>(year,<span class="dt">team =</span> team,<span class="dt">week =</span> week,<span class="dt">epa_wpa =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>game &lt;-<span class="st"> </span>cfbscrapR<span class="op">::</span><span class="kw">cfb_game_info</span>(year,<span class="dt">team =</span> team,<span class="dt">week =</span> week)</span></code></pre></div>
+<p>We’ll also use the <code>cfb_team_info()</code> function to pull the color and logo information and add it to the game info. We’ll also add in a <code>result</code> column that is the score difference between the home and the away teams that we’ll use later.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>team_info &lt;-<span class="st"> </span>cfbscrapR<span class="op">::</span><span class="kw">cfb_team_info</span>()</span>
+<span id="cb3-2"><a href="#cb3-2"></a>team_logos &lt;-<span class="st"> </span>team_info <span class="op">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="st">  </span><span class="kw">select</span>(school,color,alt_color,logos,alt_name2) <span class="op">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">logo =</span> <span class="kw">map</span>(logos,magrittr<span class="op">::</span>extract2,<span class="dv">1</span>),</span>
+<span id="cb3-5"><a href="#cb3-5"></a>         <span class="dt">logo =</span> <span class="kw">as.character</span>(logo)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>logos)</span>
+<span id="cb3-6"><a href="#cb3-6"></a>game &lt;-<span class="st"> </span>game <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="st">  </span><span class="kw">inner_join</span>(team_logos,<span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;away_team&quot;</span>=<span class="st">&quot;school&quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">away_logo=</span>logo,<span class="dt">away_color =</span> color, <span class="dt">away_alt_color =</span> alt_color,<span class="dt">away_abr =</span> alt_name2) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="st">  </span><span class="kw">inner_join</span>(team_logos,<span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;home_team&quot;</span>=<span class="st">&quot;school&quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">home_logo=</span>logo, <span class="dt">home_color =</span> color, <span class="dt">home_alt_color =</span> alt_color,<span class="dt">home_abr =</span> alt_name2) <span class="op">%&gt;%</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">result =</span> home_points <span class="op">-</span><span class="st"> </span>away_points) <span class="op">%&gt;%</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">home_score =</span> home_points,<span class="dt">away_score =</span> away_points)</span></code></pre></div>
+<p>To build the labels, we’re going to use a custom function to pull the player names out of the play text. <a href="https://twitter.com/SaiemGilani">Saiem Gilani</a> wrote the bulk of the regular expressions here to get the names. They may not catch all player names, especially for sacks, kick returns, and punt returns.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>cfb_add_player_col&lt;-<span class="st"> </span><span class="cf">function</span>(pbp) {</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  </span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="co"># RB names</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Rush_Player =</span> <span class="kw">ifelse</span>(rush <span class="op">==</span><span class="st"> </span><span class="dv">1</span>, <span class="kw">str_extract</span>(play_text, <span class="st">&quot;(.{0,25} )run |(.{0,25} )</span><span class="ch">\\</span><span class="st">d{0,2} Yd Run&quot;</span>), <span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Rush_Player =</span> <span class="kw">str_remove</span>(Rush_Player, <span class="st">&quot; run | </span><span class="ch">\\</span><span class="st">d+ Yd Run&quot;</span>))</span>
+<span id="cb4-7"><a href="#cb4-7"></a>  <span class="co"># QB names </span></span>
+<span id="cb4-8"><a href="#cb4-8"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Pass_Player =</span> <span class="kw">ifelse</span>(pass<span class="op">==</span><span class="dv">1</span>, <span class="kw">str_extract</span>(play_text, <span class="st">&quot;pass from (.*?) </span><span class="ch">\\</span><span class="st">(|(.{0,30} )pass |(.{0,30} )Sacked|(.{0,30} )incomplete &quot;</span>), <span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Pass_Player =</span> <span class="kw">str_remove</span>(Pass_Player, <span class="st">&quot;pass | Sacked| incomplete&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Pass_Player =</span> <span class="kw">if_else</span>(play_type <span class="op">==</span><span class="st"> &quot;Passing Touchdown&quot;</span>, <span class="kw">str_extract</span>(play_text, <span class="st">&quot;from(.+)&quot;</span>), Pass_Player),</span>
+<span id="cb4-12"><a href="#cb4-12"></a>           <span class="dt">Pass_Player =</span> <span class="kw">str_remove</span>(Pass_Player, <span class="st">&quot;from &quot;</span>), </span>
+<span id="cb4-13"><a href="#cb4-13"></a>           <span class="dt">Pass_Player =</span> <span class="kw">str_remove</span>(Pass_Player, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">(.+</span><span class="ch">\\</span><span class="st">)&quot;</span>),</span>
+<span id="cb4-14"><a href="#cb4-14"></a>           <span class="dt">Pass_Player =</span> <span class="kw">str_remove</span>(Pass_Player, <span class="st">&quot; </span><span class="ch">\\</span><span class="st">,&quot;</span>))</span>
+<span id="cb4-15"><a href="#cb4-15"></a>  <span class="co">## Receiver names</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Receiver_Player =</span> <span class="kw">ifelse</span>(pass<span class="op">==</span><span class="dv">1</span>, <span class="kw">str_extract</span>(play_text, <span class="st">&quot;to (.+)&quot;</span>), <span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Receiver_Player =</span> <span class="kw">if_else</span>(<span class="kw">str_detect</span>(play_text, <span class="st">&quot;Yd pass&quot;</span>), <span class="kw">str_extract</span>(play_text, <span class="st">&quot;(.+)</span><span class="ch">\\</span><span class="st">d&quot;</span>), Receiver_Player)) <span class="op">%&gt;%</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Receiver_Player =</span> <span class="kw">ifelse</span>(play_type <span class="op">==</span><span class="st"> &quot;Sack&quot;</span>, <span class="ot">NA</span>, Receiver_Player)) <span class="op">%&gt;%</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Receiver_Player =</span> <span class="kw">str_remove</span>(Receiver_Player, <span class="st">&quot;to &quot;</span>),</span>
+<span id="cb4-21"><a href="#cb4-21"></a>           <span class="dt">Receiver_Player =</span> <span class="kw">str_remove</span>(Receiver_Player, <span class="st">&quot;</span><span class="ch">\\</span><span class="st">,.+&quot;</span>),</span>
+<span id="cb4-22"><a href="#cb4-22"></a>           <span class="dt">Receiver_Player =</span> <span class="kw">str_remove</span>(Receiver_Player, <span class="st">&quot;for (.+)&quot;</span>),</span>
+<span id="cb4-23"><a href="#cb4-23"></a>           <span class="dt">Receiver_Player =</span> <span class="kw">str_remove</span>(Receiver_Player, <span class="st">&quot;( </span><span class="ch">\\</span><span class="st">d{1,2})&quot;</span>),</span>
+<span id="cb4-24"><a href="#cb4-24"></a>           <span class="dt">Receiver_Player =</span> <span class="kw">str_trim</span>(Receiver_Player))</span>
+<span id="cb4-25"><a href="#cb4-25"></a>  <span class="co">## Extract player names</span></span>
+<span id="cb4-26"><a href="#cb4-26"></a>  <span class="co">## Sack player names</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-28"><a href="#cb4-28"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Sack_Players =</span> <span class="kw">ifelse</span>(pass<span class="op">==</span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Sack&quot;</span>, </span>
+<span id="cb4-29"><a href="#cb4-29"></a>                                 <span class="kw">str_extract</span>(play_text, <span class="st">&quot;Sacked by (.+)&quot;</span>), <span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-30"><a href="#cb4-30"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Sack_Players =</span> <span class="kw">str_remove</span>(Sack_Players, <span class="st">&quot;for (.+)&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-31"><a href="#cb4-31"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Sack_Players =</span> <span class="kw">str_remove</span>(Sack_Players, <span class="st">&quot;(.+) by&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-32"><a href="#cb4-32"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Sack_Player1 =</span> <span class="kw">str_remove</span>(Sack_Players, <span class="st">&quot;and (.+)&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-33"><a href="#cb4-33"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Sack_Player2 =</span> <span class="kw">if_else</span>(<span class="kw">str_detect</span>(Sack_Players, <span class="st">&quot;and (.+)&quot;</span>), </span>
+<span id="cb4-34"><a href="#cb4-34"></a>                                  <span class="kw">str_remove</span>(Sack_Players, <span class="st">&quot; (.+) and&quot;</span>), <span class="ot">NULL</span>)) </span>
+<span id="cb4-35"><a href="#cb4-35"></a>  <span class="co">## Interception player names</span></span>
+<span id="cb4-36"><a href="#cb4-36"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-37"><a href="#cb4-37"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Interception_Player =</span> <span class="kw">ifelse</span>(pass<span class="op">==</span><span class="dv">1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Pass Interception Return&quot;</span>, <span class="kw">str_extract</span>(play_text, <span class="st">&quot;intercepted (.+)&quot;</span>), <span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-38"><a href="#cb4-38"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Interception_Player =</span> <span class="kw">str_remove</span>(Interception_Player, <span class="st">&quot;return (.+)&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-39"><a href="#cb4-39"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Interception_Player =</span> <span class="kw">str_remove</span>(Interception_Player, <span class="st">&quot;(.+) intercepted &quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-40"><a href="#cb4-40"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Interception_Player =</span> <span class="kw">str_remove</span>(Interception_Player, <span class="st">&quot;intercepted&quot;</span>))</span>
+<span id="cb4-41"><a href="#cb4-41"></a>  </span>
+<span id="cb4-42"><a href="#cb4-42"></a>  <span class="co">## Punter Name</span></span>
+<span id="cb4-43"><a href="#cb4-43"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-44"><a href="#cb4-44"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">punter_player =</span> <span class="kw">ifelse</span>(<span class="kw">str_detect</span>(play_type,<span class="st">&quot;Punt&quot;</span>),<span class="kw">str_extract</span>(play_text,<span class="st">&quot;.{0,25} punt&quot;</span>),<span class="ot">NA</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-45"><a href="#cb4-45"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">punter_player =</span> <span class="kw">str_remove</span>(punter_player,<span class="st">&quot; punt&quot;</span>))</span>
+<span id="cb4-46"><a href="#cb4-46"></a>  </span>
+<span id="cb4-47"><a href="#cb4-47"></a>  <span class="co">## Punt Returner</span></span>
+<span id="cb4-48"><a href="#cb4-48"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-49"><a href="#cb4-49"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">punt_returner_player =</span> <span class="kw">ifelse</span>(<span class="kw">str_detect</span>(play_type,<span class="st">&quot;Punt&quot;</span>),<span class="kw">str_extract</span>(play_text,<span class="st">&quot;, .{0,25} returns&quot;</span>),<span class="ot">NA</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb4-50"><a href="#cb4-50"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">punt_returner_player =</span> <span class="kw">str_remove</span>(punt_returner_player,<span class="st">&quot;, &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-51"><a href="#cb4-51"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">punt_returner_player =</span> <span class="kw">str_remove</span>(punt_returner_player,<span class="st">&quot; returns&quot;</span>)) </span>
+<span id="cb4-52"><a href="#cb4-52"></a>  </span>
+<span id="cb4-53"><a href="#cb4-53"></a>  <span class="co">## Kickoff Returner</span></span>
+<span id="cb4-54"><a href="#cb4-54"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-55"><a href="#cb4-55"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">kickoff_returner_player =</span> <span class="kw">ifelse</span>(<span class="kw">str_detect</span>(play_type,<span class="st">&quot;ickoff&quot;</span>),<span class="kw">str_extract</span>(play_text,<span class="st">&quot;, .{0,25} return&quot;</span>),<span class="ot">NA</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-56"><a href="#cb4-56"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">kickoff_returner_player =</span> <span class="kw">str_remove</span>(kickoff_returner_player,<span class="st">&quot;, &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb4-57"><a href="#cb4-57"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">kickoff_returner_player =</span> <span class="kw">str_remove</span>(kickoff_returner_player,<span class="st">&quot; return&quot;</span>)) </span>
+<span id="cb4-58"><a href="#cb4-58"></a>  </span>
+<span id="cb4-59"><a href="#cb4-59"></a>  pbp &lt;-<span class="st"> </span>pbp <span class="op">%&gt;%</span></span>
+<span id="cb4-60"><a href="#cb4-60"></a><span class="st">    </span><span class="kw">rename</span>(<span class="dt">rusher_player_name =</span> Rush_Player,</span>
+<span id="cb4-61"><a href="#cb4-61"></a>           <span class="dt">receiver_player_name =</span> Receiver_Player,</span>
+<span id="cb4-62"><a href="#cb4-62"></a>           <span class="dt">passer_player_name =</span> Pass_Player,</span>
+<span id="cb4-63"><a href="#cb4-63"></a>           <span class="dt">sack_player_name =</span> Sack_Player1,</span>
+<span id="cb4-64"><a href="#cb4-64"></a>           <span class="dt">interception_player_name =</span> Interception_Player,</span>
+<span id="cb4-65"><a href="#cb4-65"></a>           <span class="dt">punter_player_name =</span> punter_player,</span>
+<span id="cb4-66"><a href="#cb4-66"></a>           <span class="dt">kickoff_returner_player_name =</span> kickoff_returner_player,</span>
+<span id="cb4-67"><a href="#cb4-67"></a>           <span class="dt">punt_returner_player_name =</span> punt_returner_player)</span>
+<span id="cb4-68"><a href="#cb4-68"></a>}</span></code></pre></div>
+<p>Now we are ready to transform our play-by-play data frame to match what we need to work with Lee Sharpe’s animation code. First, we will rename several columns that are similar between <code>cfbscrapR</code> and <code>nflfastR</code> to match <code>nflfastR</code>’s column names. Then we need to create a few new columns that <code>cfbscrapR</code> doesn’t have. <code>game_seconds_remaining</code> is really just renaming <code>TimeSecsRem</code> but correcting for the half. <code>result</code> grabs from the game information and is the difference in the home and away score. We create the <code>time</code> column to use as the clock on the right side of the animation. Finally, we use our custom <code>cfb_add_player_col()</code> function to add the player names to our data.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>game_pbp &lt;-<span class="st"> </span>game_pbp <span class="op">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="st">  </span><span class="kw">rename</span>(<span class="dt">qtr =</span> period,<span class="dt">wp =</span> wp_before,<span class="dt">posteam =</span> offense_play,<span class="dt">defteam =</span> defense_play,</span>
+<span id="cb5-3"><a href="#cb5-3"></a>         <span class="dt">away_team =</span> away,<span class="dt">home_team =</span> home,<span class="dt">play_id =</span> game_play_number,</span>
+<span id="cb5-4"><a href="#cb5-4"></a>         <span class="dt">posteam_score=</span>offense_score,<span class="dt">defteam_score=</span>defense_score) <span class="op">%&gt;%</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">game_seconds_remaining =</span> <span class="kw">ifelse</span>(half <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,TimeSecsRem <span class="op">+</span><span class="st"> </span><span class="dv">1800</span>,TimeSecsRem),</span>
+<span id="cb5-6"><a href="#cb5-6"></a>         <span class="dt">result =</span> game<span class="op">$</span>result,</span>
+<span id="cb5-7"><a href="#cb5-7"></a>         <span class="dt">minlabel =</span> <span class="kw">ifelse</span>(clock.minutes <span class="op">&gt;=</span><span class="st"> </span><span class="dv">15</span>,</span>
+<span id="cb5-8"><a href="#cb5-8"></a>                           <span class="kw">ifelse</span>(clock.minutes <span class="op">==</span><span class="st"> </span><span class="dv">15</span> <span class="op">&amp;</span><span class="st"> </span>clock.seconds <span class="op">==</span><span class="st"> </span><span class="dv">0</span>,<span class="dv">15</span>,clock.minutes <span class="op">-</span><span class="st"> </span><span class="dv">15</span>), clock.minutes),</span>
+<span id="cb5-9"><a href="#cb5-9"></a>         <span class="dt">minlabel =</span> <span class="kw">ifelse</span>(minlabel <span class="op">&lt;</span><span class="st"> </span><span class="dv">10</span>,<span class="kw">paste0</span>(<span class="st">&quot;0&quot;</span>,minlabel),minlabel),</span>
+<span id="cb5-10"><a href="#cb5-10"></a>         <span class="dt">seclabel =</span> <span class="kw">ifelse</span>(clock.seconds <span class="op">&lt;</span><span class="st"> </span><span class="dv">10</span>, <span class="kw">paste0</span>(<span class="st">&quot;0&quot;</span>,clock.seconds),clock.seconds),</span>
+<span id="cb5-11"><a href="#cb5-11"></a>         <span class="dt">time =</span> <span class="kw">paste0</span>(minlabel,<span class="st">&quot;:&quot;</span>,seclabel)) <span class="op">%&gt;%</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a><span class="st">  </span><span class="kw">cfb_add_player_col</span>()</span></code></pre></div>
+<p>Now that our data matches <code>nflfastR</code>, we can start to copy Lee Sharpe’s code and the bulk of the remaining code is his with a few minor adjustments to the plot, the overtime logic, and the labels. First we filter out plays that don’t have a win percentage and fix the win probability so that it is always the probability of the away team winning.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>base_wp_data &lt;-<span class="st"> </span>game_pbp <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(wp)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">s=</span>game_seconds_remaining,</span>
+<span id="cb6-4"><a href="#cb6-4"></a>         <span class="dt">wp=</span><span class="kw">ifelse</span>(posteam <span class="op">==</span><span class="st"> </span>away_team,wp,<span class="dv">1</span><span class="op">-</span>wp))</span></code></pre></div>
+<p>Then we fix the plays without a wpa.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># fix if play other than last is NA</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="cf">for</span> (r <span class="cf">in</span> (<span class="kw">nrow</span>(base_wp_data)<span class="op">-</span><span class="dv">1</span>)<span class="op">:</span><span class="dv">1</span>) {</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="kw">is.na</span>(base_wp_data<span class="op">$</span>wp[r]) <span class="op">&amp;&amp;</span><span class="st"> </span><span class="kw">is.na</span>(base_wp_data<span class="op">$</span>wpa[r]))</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  {</span>
+<span id="cb7-5"><a href="#cb7-5"></a>    target_wp &lt;-<span class="st"> </span>base_wp_data<span class="op">$</span>wp[r<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb7-6"><a href="#cb7-6"></a>    base_wp_data<span class="op">$</span>wpa[r] &lt;-<span class="st"> </span>target_wp <span class="op">-</span><span class="st"> </span>base_wp_data<span class="op">$</span>wp[r]</span>
+<span id="cb7-7"><a href="#cb7-7"></a>  }</span>
+<span id="cb7-8"><a href="#cb7-8"></a>}</span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co"># fix if last play is NA</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="cf">if</span> (<span class="kw">is.na</span>(base_wp_data<span class="op">$</span>wpa[<span class="kw">nrow</span>(base_wp_data)])) {</span>
+<span id="cb7-11"><a href="#cb7-11"></a>  r &lt;-<span class="st"> </span><span class="kw">nrow</span>(base_wp_data)</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  move_to &lt;-<span class="st"> </span><span class="kw">ifelse</span>(game<span class="op">$</span>result <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>,<span class="dv">1</span>,<span class="kw">ifelse</span>(game<span class="op">$</span>result <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">0.5</span>))</span>
+<span id="cb7-13"><a href="#cb7-13"></a>  delta &lt;-<span class="st"> </span>move_to <span class="op">-</span><span class="st"> </span>base_wp_data<span class="op">$</span>wp[r]</span>
+<span id="cb7-14"><a href="#cb7-14"></a>  base_wp_data<span class="op">$</span>wpa[r] &lt;-<span class="st"> </span><span class="kw">ifelse</span>(base_wp_data<span class="op">$</span>posteam[r] <span class="op">==</span><span class="st"> </span>game<span class="op">$</span>away_team,delta,<span class="op">-</span>delta)</span>
+<span id="cb7-15"><a href="#cb7-15"></a>}</span></code></pre></div>
+<p>Now we create the labels. This generates labels for any play that had a change in the winning percentage of more than 10 percentage points. We’ll also simplify our data frame by only selecting the relevant columns for our plots.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>wp_data &lt;-<span class="st"> </span>base_wp_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">helped=</span><span class="kw">ifelse</span>(wpa<span class="op">&gt;</span><span class="dv">0</span>,posteam,defteam),</span>
+<span id="cb8-3"><a href="#cb8-3"></a>         <span class="dt">text=</span><span class="kw">case_when</span>(</span>
+<span id="cb8-4"><a href="#cb8-4"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Kickoff&quot;</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(kickoff_returner_player_name) <span class="op">~</span><span class="st"> </span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="st">             </span><span class="kw">glue</span>(<span class="st">&quot;{kickoff_returner_player_name} KR&quot;</span>),</span>
+<span id="cb8-6"><a href="#cb8-6"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Rush&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{rusher_player_name} Rush&quot;</span>),</span>
+<span id="cb8-7"><a href="#cb8-7"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Pass Reception&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{receiver_player_name} Catch&quot;</span>),</span>
+<span id="cb8-8"><a href="#cb8-8"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Sack&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{sack_player_name} SACK&quot;</span>),</span>
+<span id="cb8-9"><a href="#cb8-9"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Punt&quot;</span> <span class="op">~</span><span class="st"> &quot;&quot;</span>,<span class="co">#glue(&quot;{punt_returner_player_name} PR&quot;),</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Pass Incompletion&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{passer_player_name} Incomplete&quot;</span>),</span>
+<span id="cb8-11"><a href="#cb8-11"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Fumble Recovery (Opponent)&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{posteam} FUMBLE&quot;</span>),</span>
+<span id="cb8-12"><a href="#cb8-12"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Penalty&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;PENALTY&quot;</span>),</span>
+<span id="cb8-13"><a href="#cb8-13"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Field Goal Missed&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{posteam} FG MISS&quot;</span>),</span>
+<span id="cb8-14"><a href="#cb8-14"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Passing Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{receiver_player_name} TD&quot;</span>),</span>
+<span id="cb8-15"><a href="#cb8-15"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Rushing Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{rusher_player_name} TD&quot;</span>),</span>
+<span id="cb8-16"><a href="#cb8-16"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Field Goal Good&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{posteam} FG GOOD&quot;</span>),</span>
+<span id="cb8-17"><a href="#cb8-17"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Timeout&quot;</span> <span class="op">~</span><span class="st"> &quot;&quot;</span>,</span>
+<span id="cb8-18"><a href="#cb8-18"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Pass Interception Return&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{interception_player_name} INT&quot;</span>),</span>
+<span id="cb8-19"><a href="#cb8-19"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Fumble Recovery (Own)&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{rusher_player_name} Rush&quot;</span>),</span>
+<span id="cb8-20"><a href="#cb8-20"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Blocked Field Goal&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{posteam} FG BLK&quot;</span>),</span>
+<span id="cb8-21"><a href="#cb8-21"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Kickoff Return (Offense)&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{kickoff_returner_player_name} KR&quot;</span>),</span>
+<span id="cb8-22"><a href="#cb8-22"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Blocked Punt&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{defteam} PUNT BLK&quot;</span>),</span>
+<span id="cb8-23"><a href="#cb8-23"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Interception Return Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{interception_player_name} DEF TD&quot;</span>),</span>
+<span id="cb8-24"><a href="#cb8-24"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Kickoff Return Touchdown&quot;</span> <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(kickoff_returner_player_name) <span class="op">~</span><span class="st"> </span></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="st">             </span><span class="kw">glue</span>(<span class="st">&quot;{kickoff_returner_player_name} KR TD&quot;</span>),</span>
+<span id="cb8-26"><a href="#cb8-26"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Punt Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{punt_returner_player_name} PR TD&quot;</span>),</span>
+<span id="cb8-27"><a href="#cb8-27"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Fumble Return Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{defteam} FUMBLE TD&quot;</span>),</span>
+<span id="cb8-28"><a href="#cb8-28"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Safety&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;SAFETY&quot;</span>),</span>
+<span id="cb8-29"><a href="#cb8-29"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Punt Return Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{punt_returner_player_name} PR TD&quot;</span>),</span>
+<span id="cb8-30"><a href="#cb8-30"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Uncategorized&quot;</span> <span class="op">~</span><span class="st"> &quot;&quot;</span>,</span>
+<span id="cb8-31"><a href="#cb8-31"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Blocked Punt Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{defteam} PUNT BLK TD&quot;</span>),</span>
+<span id="cb8-32"><a href="#cb8-32"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;placeholder&quot;</span> <span class="op">~</span><span class="st"> &quot;&quot;</span>,</span>
+<span id="cb8-33"><a href="#cb8-33"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Missed Field Goal Return&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{posteam} FG MISS&quot;</span>),</span>
+<span id="cb8-34"><a href="#cb8-34"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Missed Field Goal Return Touchdown&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{defteam} FGR TD&quot;</span>),</span>
+<span id="cb8-35"><a href="#cb8-35"></a>           <span class="kw">abs</span>(wpa) <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>play_type <span class="op">==</span><span class="st"> &quot;Defensive 2pt Conversion&quot;</span> <span class="op">~</span><span class="st"> </span><span class="kw">glue</span>(<span class="st">&quot;{defteam} DEF 2PT&quot;</span>),</span>
+<span id="cb8-36"><a href="#cb8-36"></a>           <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> &quot;&quot;</span>),</span>
+<span id="cb8-37"><a href="#cb8-37"></a>         <span class="dt">text=</span><span class="kw">ifelse</span>(text <span class="op">==</span><span class="st"> &quot;&quot;</span>,<span class="st">&quot;&quot;</span>,<span class="kw">glue</span>(<span class="st">&quot;{text}</span><span class="ch">\n</span><span class="st">{helped} +{abs(round(100*wpa))}%&quot;</span>)),</span>
+<span id="cb8-38"><a href="#cb8-38"></a>         <span class="dt">away_score=</span><span class="kw">ifelse</span>(posteam <span class="op">==</span><span class="st"> </span>away_team,posteam_score,defteam_score),</span>
+<span id="cb8-39"><a href="#cb8-39"></a>         <span class="dt">home_score=</span><span class="kw">ifelse</span>(posteam <span class="op">==</span><span class="st"> </span>away_team,defteam_score,posteam_score)) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb8-40"><a href="#cb8-40"></a><span class="st">  </span><span class="kw">select</span>(play_id,qtr,time,s,wp,wpa,posteam,away_score,home_score,text)</span></code></pre></div>
+<p>This is where the real magic happens. Sharpe’s code will iterate over the labels and try to determine valid locations for each one.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># points for plotting</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>x_max &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>x_lab_min &lt;-<span class="st"> </span><span class="dv">3600</span> <span class="op">-</span><span class="st"> </span><span class="dv">250</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>x_lab_max &lt;-<span class="st"> </span>x_max <span class="op">+</span><span class="st"> </span><span class="dv">250</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a>x_score &lt;-<span class="st"> </span><span class="dv">320</span> <span class="op">-</span><span class="st"> </span>x_max</span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="co"># determine the location of the label</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>wp_data<span class="op">$</span>x_text &lt;-<span class="st"> </span><span class="ot">NA</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>wp_data<span class="op">$</span>y_text &lt;-<span class="st"> </span><span class="ot">NA</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>wp_data &lt;-<span class="st"> </span>wp_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">arrange</span>(<span class="kw">desc</span>(<span class="kw">abs</span>(wpa)))</span>
+<span id="cb9-10"><a href="#cb9-10"></a></span>
+<span id="cb9-11"><a href="#cb9-11"></a>seq_fix &lt;-<span class="st"> </span><span class="cf">function</span>(start,end,move)</span>
+<span id="cb9-12"><a href="#cb9-12"></a>{</span>
+<span id="cb9-13"><a href="#cb9-13"></a>  <span class="cf">if</span> (move <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;&amp;</span><span class="st"> </span>start <span class="op">&lt;</span><span class="st"> </span>end) <span class="kw">return</span>(end)</span>
+<span id="cb9-14"><a href="#cb9-14"></a>  <span class="cf">if</span> (move <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span> <span class="op">&amp;&amp;</span><span class="st"> </span>start <span class="op">&gt;</span><span class="st"> </span>end) <span class="kw">return</span>(end)</span>
+<span id="cb9-15"><a href="#cb9-15"></a>  <span class="kw">return</span>(<span class="kw">seq</span>(start,end,move))</span>
+<span id="cb9-16"><a href="#cb9-16"></a>}</span>
+<span id="cb9-17"><a href="#cb9-17"></a></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="cf">for</span> (r <span class="cf">in</span> <span class="kw">which</span>(wp_data<span class="op">$</span>text <span class="op">!=</span><span class="st"> &quot;&quot;</span>))</span>
+<span id="cb9-19"><a href="#cb9-19"></a>{</span>
+<span id="cb9-20"><a href="#cb9-20"></a>  <span class="co"># ordered list of spots this label could go</span></span>
+<span id="cb9-21"><a href="#cb9-21"></a>  y_side &lt;-<span class="st"> </span>wp_data<span class="op">$</span>wp[r] <span class="op">&gt;=</span><span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb9-22"><a href="#cb9-22"></a>  <span class="cf">if</span> (y_side)</span>
+<span id="cb9-23"><a href="#cb9-23"></a>  {</span>
+<span id="cb9-24"><a href="#cb9-24"></a>    y_spots &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>wp[r]<span class="op">-</span><span class="fl">0.1</span>,<span class="fl">0.05</span>,<span class="op">-</span><span class="fl">0.1</span>),<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>wp[r]<span class="op">+</span><span class="fl">0.1</span>,<span class="fl">0.95</span>,<span class="fl">0.1</span>))</span>
+<span id="cb9-25"><a href="#cb9-25"></a>  } <span class="cf">else</span> {</span>
+<span id="cb9-26"><a href="#cb9-26"></a>    y_spots &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>wp[r]<span class="op">+</span><span class="fl">0.1</span>,<span class="fl">0.95</span>,<span class="fl">0.1</span>),<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>wp[r]<span class="op">-</span><span class="fl">0.1</span>,<span class="fl">0.05</span>,<span class="op">-</span><span class="fl">0.1</span>))</span>
+<span id="cb9-27"><a href="#cb9-27"></a>  }</span>
+<span id="cb9-28"><a href="#cb9-28"></a>  <span class="co"># iterate, see if this spot is valid</span></span>
+<span id="cb9-29"><a href="#cb9-29"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(y_spots))</span>
+<span id="cb9-30"><a href="#cb9-30"></a>  {</span>
+<span id="cb9-31"><a href="#cb9-31"></a>    valid &lt;-<span class="st"> </span><span class="ot">TRUE</span></span>
+<span id="cb9-32"><a href="#cb9-32"></a>    <span class="cf">if</span> (<span class="kw">nrow</span>(wp_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(y_spots[i]<span class="op">-</span><span class="fl">0.1</span> <span class="op">&lt;</span><span class="st"> </span>wp <span class="op">&amp;</span><span class="st"> </span>wp <span class="op">&lt;</span><span class="st"> </span>y_spots[i]<span class="op">+</span><span class="fl">0.1</span> <span class="op">&amp;</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="st">                                </span>wp_data<span class="op">$</span>s[r]<span class="op">-</span><span class="dv">300</span> <span class="op">&lt;</span><span class="st"> </span>s <span class="op">&amp;</span><span class="st"> </span>s <span class="op">&lt;</span><span class="st"> </span>wp_data<span class="op">$</span>s[r]<span class="op">+</span><span class="dv">300</span>)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb9-34"><a href="#cb9-34"></a>    {</span>
+<span id="cb9-35"><a href="#cb9-35"></a>      <span class="co"># too close to the WP line</span></span>
+<span id="cb9-36"><a href="#cb9-36"></a>      valid &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
+<span id="cb9-37"><a href="#cb9-37"></a>    }</span>
+<span id="cb9-38"><a href="#cb9-38"></a>    <span class="cf">if</span> (<span class="kw">nrow</span>(wp_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(y_spots[i]<span class="op">-</span><span class="fl">0.1</span> <span class="op">&lt;</span><span class="st"> </span>y_text <span class="op">&amp;</span><span class="st"> </span>y_text <span class="op">&lt;</span><span class="st"> </span>y_spots[i]<span class="op">+</span><span class="fl">0.1</span> <span class="op">&amp;</span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="st">                                </span>wp_data<span class="op">$</span>s[r]<span class="op">-</span><span class="dv">600</span> <span class="op">&lt;</span><span class="st"> </span>x_text <span class="op">&amp;</span><span class="st"> </span>x_text <span class="op">&lt;</span><span class="st"> </span>wp_data<span class="op">$</span>s[r]<span class="op">+</span><span class="dv">600</span>)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb9-40"><a href="#cb9-40"></a>    {</span>
+<span id="cb9-41"><a href="#cb9-41"></a>      <span class="co"># too close to another label</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a>      valid &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a>    }</span>
+<span id="cb9-44"><a href="#cb9-44"></a>    <span class="cf">if</span> (valid)</span>
+<span id="cb9-45"><a href="#cb9-45"></a>    {</span>
+<span id="cb9-46"><a href="#cb9-46"></a>      <span class="co"># we found a spot for it, store and break loop</span></span>
+<span id="cb9-47"><a href="#cb9-47"></a>      wp_data<span class="op">$</span>x_text[r] &lt;-<span class="st"> </span>wp_data<span class="op">$</span>s[r] </span>
+<span id="cb9-48"><a href="#cb9-48"></a>      wp_data<span class="op">$</span>y_text[r] &lt;-<span class="st"> </span>y_spots[i]</span>
+<span id="cb9-49"><a href="#cb9-49"></a>      <span class="cf">break</span></span>
+<span id="cb9-50"><a href="#cb9-50"></a>    }</span>
+<span id="cb9-51"><a href="#cb9-51"></a>  }</span>
+<span id="cb9-52"><a href="#cb9-52"></a>  <span class="co"># try x_spots?</span></span>
+<span id="cb9-53"><a href="#cb9-53"></a>  <span class="cf">if</span> (<span class="op">!</span>valid)</span>
+<span id="cb9-54"><a href="#cb9-54"></a>  {</span>
+<span id="cb9-55"><a href="#cb9-55"></a>    x_side &lt;-<span class="st"> </span>wp_data<span class="op">$</span>s[r] <span class="op">&gt;=</span><span class="st"> </span><span class="dv">1800</span></span>
+<span id="cb9-56"><a href="#cb9-56"></a>    <span class="cf">if</span> (x_side)</span>
+<span id="cb9-57"><a href="#cb9-57"></a>    {</span>
+<span id="cb9-58"><a href="#cb9-58"></a>      x_spots &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>s[r]<span class="op">-</span><span class="dv">400</span>,x_lab_max,<span class="op">-</span><span class="dv">200</span>),</span>
+<span id="cb9-59"><a href="#cb9-59"></a>                   <span class="kw">seq_fix</span>(wp_data<span class="op">$</span>s[r]<span class="op">+</span><span class="dv">400</span>,x_lab_min,<span class="dv">200</span>))</span>
+<span id="cb9-60"><a href="#cb9-60"></a>    } <span class="cf">else</span> {</span>
+<span id="cb9-61"><a href="#cb9-61"></a>      x_spots &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">seq_fix</span>(wp_data<span class="op">$</span>s[r]<span class="op">+</span><span class="dv">400</span>,x_lab_min,<span class="dv">200</span>),</span>
+<span id="cb9-62"><a href="#cb9-62"></a>                   <span class="kw">seq_fix</span>(wp_data<span class="op">$</span>s[r]<span class="op">-</span><span class="dv">400</span>,x_lab_max,<span class="op">-</span><span class="dv">200</span>))</span>
+<span id="cb9-63"><a href="#cb9-63"></a>    }</span>
+<span id="cb9-64"><a href="#cb9-64"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(x_spots))</span>
+<span id="cb9-65"><a href="#cb9-65"></a>    {</span>
+<span id="cb9-66"><a href="#cb9-66"></a>      valid &lt;-<span class="st"> </span><span class="ot">TRUE</span></span>
+<span id="cb9-67"><a href="#cb9-67"></a>      <span class="cf">if</span> (<span class="kw">nrow</span>(wp_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(wp_data<span class="op">$</span>wp[r]<span class="op">-</span><span class="fl">0.1</span> <span class="op">&lt;</span><span class="st"> </span>wp <span class="op">&amp;</span><span class="st"> </span>wp <span class="op">&lt;</span><span class="st"> </span>wp_data<span class="op">$</span>wp[r]<span class="op">+</span><span class="fl">0.1</span> <span class="op">&amp;</span></span>
+<span id="cb9-68"><a href="#cb9-68"></a><span class="st">                                  </span>x_spots[i]<span class="op">-</span><span class="dv">300</span> <span class="op">&lt;</span><span class="st"> </span>s <span class="op">&amp;</span><span class="st"> </span>s <span class="op">&lt;</span><span class="st"> </span>x_spots[i]<span class="op">+</span><span class="dv">300</span>)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb9-69"><a href="#cb9-69"></a>      {</span>
+<span id="cb9-70"><a href="#cb9-70"></a>        <span class="co"># too close to the WP line</span></span>
+<span id="cb9-71"><a href="#cb9-71"></a>        valid &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
+<span id="cb9-72"><a href="#cb9-72"></a>      }</span>
+<span id="cb9-73"><a href="#cb9-73"></a>      <span class="cf">if</span> (<span class="kw">nrow</span>(wp_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(wp_data<span class="op">$</span>wp[r]<span class="op">-</span><span class="fl">0.1</span> <span class="op">&lt;</span><span class="st"> </span>y_text <span class="op">&amp;</span><span class="st"> </span>y_text <span class="op">&lt;</span><span class="st"> </span>wp_data<span class="op">$</span>wp[r]<span class="op">+</span><span class="fl">0.1</span> <span class="op">&amp;</span></span>
+<span id="cb9-74"><a href="#cb9-74"></a><span class="st">                                  </span>x_spots[i]<span class="op">-</span><span class="dv">600</span> <span class="op">&lt;</span><span class="st"> </span>x_text <span class="op">&amp;</span><span class="st"> </span>x_text <span class="op">&lt;</span><span class="st"> </span>x_spots[i]<span class="op">+</span><span class="dv">600</span>)) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb9-75"><a href="#cb9-75"></a>      {</span>
+<span id="cb9-76"><a href="#cb9-76"></a>        <span class="co"># too close to another label</span></span>
+<span id="cb9-77"><a href="#cb9-77"></a>        valid &lt;-<span class="st"> </span><span class="ot">FALSE</span></span>
+<span id="cb9-78"><a href="#cb9-78"></a>      }</span>
+<span id="cb9-79"><a href="#cb9-79"></a>      <span class="cf">if</span> (valid)</span>
+<span id="cb9-80"><a href="#cb9-80"></a>      {</span>
+<span id="cb9-81"><a href="#cb9-81"></a>        <span class="co"># we found a spot for it, stop loop</span></span>
+<span id="cb9-82"><a href="#cb9-82"></a>        wp_data<span class="op">$</span>x_text[r] &lt;-<span class="st"> </span>x_spots[i]</span>
+<span id="cb9-83"><a href="#cb9-83"></a>        wp_data<span class="op">$</span>y_text[r] &lt;-<span class="st"> </span>wp_data<span class="op">$</span>wp[r]</span>
+<span id="cb9-84"><a href="#cb9-84"></a>        <span class="cf">break</span></span>
+<span id="cb9-85"><a href="#cb9-85"></a>      }</span>
+<span id="cb9-86"><a href="#cb9-86"></a>    }</span>
+<span id="cb9-87"><a href="#cb9-87"></a>  }</span>
+<span id="cb9-88"><a href="#cb9-88"></a>  <span class="co"># warn about the labels not placed</span></span>
+<span id="cb9-89"><a href="#cb9-89"></a>  <span class="cf">if</span> (<span class="op">!</span>valid)</span>
+<span id="cb9-90"><a href="#cb9-90"></a>  {</span>
+<span id="cb9-91"><a href="#cb9-91"></a>    <span class="kw">warning</span>(<span class="kw">glue</span>(<span class="kw">paste</span>(<span class="st">&quot;No room for ({wp_data$s[r]},{round(wp_data$wp[r],3)}):&quot;</span>,</span>
+<span id="cb9-92"><a href="#cb9-92"></a>                       <span class="st">&quot;{gsub(&#39;</span><span class="ch">\n</span><span class="st">&#39;,&#39; &#39;,wp_data$text[r])}&quot;</span>)))</span>
+<span id="cb9-93"><a href="#cb9-93"></a>  }</span>
+<span id="cb9-94"><a href="#cb9-94"></a>}</span></code></pre></div>
+<p>Finally, we create two new rows to our data frame for the start and end of the game, filter out any other weirdness, and arrange our data frame by the order of the plays.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># add on WP boundaries</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>first_row &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">play_id=</span><span class="dv">0</span>,<span class="dt">qtr=</span><span class="dv">1</span>,<span class="dt">time=</span><span class="st">&quot;15:00&quot;</span>,<span class="dt">s=</span><span class="dv">3600</span>,</span>
+<span id="cb10-3"><a href="#cb10-3"></a>                        <span class="dt">wp=</span><span class="fl">0.5</span>,<span class="dt">wpa=</span><span class="ot">NA</span>,<span class="dt">text=</span><span class="kw">as.character</span>(<span class="st">&quot;&quot;</span>),</span>
+<span id="cb10-4"><a href="#cb10-4"></a>                        <span class="dt">x_text=</span><span class="dv">3600</span>,<span class="dt">y_text=</span><span class="fl">0.5</span>,<span class="dt">away_score=</span><span class="dv">0</span>,<span class="dt">home_score=</span><span class="dv">0</span>,</span>
+<span id="cb10-5"><a href="#cb10-5"></a>                        <span class="dt">stringsAsFactors=</span><span class="ot">FALSE</span>)</span>
+<span id="cb10-6"><a href="#cb10-6"></a>last_row &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">play_id=</span><span class="dv">999999</span>,<span class="dt">qtr=</span><span class="kw">max</span>(wp_data<span class="op">$</span>qtr),<span class="dt">s=</span>x_max<span class="dv">-1</span>,</span>
+<span id="cb10-7"><a href="#cb10-7"></a>                       <span class="dt">time=</span><span class="kw">ifelse</span>(<span class="kw">max</span>(wp_data<span class="op">$</span>qtr) <span class="op">&gt;=</span><span class="st"> </span><span class="dv">5</span>,<span class="st">&quot;FINAL</span><span class="ch">\n</span><span class="st">OT&quot;</span>,<span class="st">&quot;FINAL&quot;</span>),</span>
+<span id="cb10-8"><a href="#cb10-8"></a>                       <span class="dt">wp=</span><span class="kw">ifelse</span>(game<span class="op">$</span>result <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>,<span class="dv">1</span>,<span class="kw">ifelse</span>(game<span class="op">$</span>result <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>,<span class="dv">0</span>,<span class="fl">0.5</span>)),</span>
+<span id="cb10-9"><a href="#cb10-9"></a>                       <span class="dt">wpa=</span><span class="ot">NA</span>,<span class="dt">text=</span><span class="kw">as.character</span>(<span class="st">&quot;&quot;</span>),<span class="dt">x_text=</span>x_max,<span class="dt">y_text=</span><span class="fl">0.5</span>,</span>
+<span id="cb10-10"><a href="#cb10-10"></a>                       <span class="dt">away_score=</span>game<span class="op">$</span>away_score,<span class="dt">home_score=</span>game<span class="op">$</span>home_score,</span>
+<span id="cb10-11"><a href="#cb10-11"></a>                       <span class="dt">stringsAsFactors=</span><span class="ot">FALSE</span>)</span>
+<span id="cb10-12"><a href="#cb10-12"></a>wp_data &lt;-<span class="st"> </span>wp_data <span class="op">%&gt;%</span></span>
+<span id="cb10-13"><a href="#cb10-13"></a><span class="st">  </span><span class="kw">filter</span>(posteam <span class="op">!=</span><span class="st"> &quot;&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-14"><a href="#cb10-14"></a><span class="st">  </span><span class="kw">filter</span>(wpa <span class="op">!=</span><span class="st"> </span><span class="dv">0</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-15"><a href="#cb10-15"></a><span class="st">  </span><span class="kw">bind_rows</span>(first_row) <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb10-16"><a href="#cb10-16"></a><span class="st">  </span><span class="kw">bind_rows</span>(last_row) <span class="op">%&gt;%</span></span>
+<span id="cb10-17"><a href="#cb10-17"></a><span class="st">  </span><span class="kw">arrange</span>(play_id)</span></code></pre></div>
+</div>
+<div id="plotting" class="section level2">
+<h2>Plotting</h2>
+<p>Now we’re ready for plotting. The <code>draw_frame()</code> function will draw our win probability plot for any given number of seconds remaining in the game. This is where you can make any changes to the plot that you would like.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>draw_frame &lt;-<span class="st"> </span><span class="cf">function</span>(n_sec)</span>
+<span id="cb11-2"><a href="#cb11-2"></a>{</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  </span>
+<span id="cb11-4"><a href="#cb11-4"></a>  <span class="co"># frame data</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>  frm_data &lt;-<span class="st"> </span>wp_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="st">    </span><span class="kw">filter</span>(s <span class="op">&gt;=</span><span class="st"> </span>n_sec)</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  </span>
+<span id="cb11-8"><a href="#cb11-8"></a>  <span class="co"># output quarter changes</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>  <span class="cf">if</span> (<span class="kw">nrow</span>(frm_data <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(qtr <span class="op">==</span><span class="st"> </span><span class="kw">max</span>(qtr))) <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
+<span id="cb11-10"><a href="#cb11-10"></a>  {</span>
+<span id="cb11-11"><a href="#cb11-11"></a>    <span class="kw">print</span>(<span class="kw">glue</span>(<span class="st">&quot;Plotting pbp in quarter {max(frm_data$qtr)}&quot;</span>))</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  }</span>
+<span id="cb11-13"><a href="#cb11-13"></a>  </span>
+<span id="cb11-14"><a href="#cb11-14"></a>  <span class="co"># plot</span></span>
+<span id="cb11-15"><a href="#cb11-15"></a>  frm_plot &lt;-<span class="st"> </span>frm_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>s,<span class="dt">y=</span>wp)) <span class="op">+</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="st">    </span><span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="st">    </span><span class="kw">geom_vline</span>(<span class="dt">xintercept=</span><span class="kw">c</span>(<span class="dv">3600</span>,x_max),<span class="dt">color=</span><span class="st">&quot;#5555AA&quot;</span>) <span class="op">+</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="st">    </span><span class="kw">geom_segment</span>(<span class="dt">x=</span><span class="op">-</span><span class="dv">3600</span>,<span class="dt">xend=</span><span class="op">-</span>x_max,<span class="dt">y=</span><span class="fl">0.5</span>,<span class="dt">yend=</span><span class="fl">0.5</span>,<span class="dt">size=</span><span class="fl">0.75</span>) <span class="op">+</span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="st">    </span><span class="kw">geom_image</span>(<span class="dt">x=</span>x_score,<span class="dt">y=</span><span class="fl">0.82</span>,<span class="dt">image=</span>game<span class="op">$</span>away_logo,<span class="dt">size=</span><span class="fl">0.08</span>,<span class="dt">asp=</span><span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="st">    </span><span class="kw">geom_image</span>(<span class="dt">x=</span>x_score,<span class="dt">y=</span><span class="fl">0.18</span>,<span class="dt">image=</span>game<span class="op">$</span>home_logo,<span class="dt">size=</span><span class="fl">0.08</span>,<span class="dt">asp=</span><span class="fl">1.5</span>) <span class="op">+</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="st">    </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">color=</span>..y.. <span class="op">&lt;</span><span class="st"> </span><span class="fl">.5</span>),<span class="dt">size=</span><span class="dv">1</span>) <span class="op">+</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="st">    </span><span class="kw">scale_color_manual</span>(<span class="dt">values =</span> <span class="kw">c</span>(game<span class="op">$</span>away_color,game<span class="op">$</span>home_color)) <span class="op">+</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="st">    </span><span class="kw">scale_x_continuous</span>(<span class="dt">trans=</span><span class="st">&quot;reverse&quot;</span>,</span>
+<span id="cb11-25"><a href="#cb11-25"></a>                       <span class="dt">minor_breaks=</span><span class="ot">NULL</span>,</span>
+<span id="cb11-26"><a href="#cb11-26"></a>                       <span class="dt">labels=</span><span class="kw">c</span>(<span class="st">&quot;KICK</span><span class="ch">\n</span><span class="st">OFF&quot;</span>,<span class="st">&quot;END</span><span class="ch">\n</span><span class="st">Q1&quot;</span>,<span class="st">&quot;HALF</span><span class="ch">\n</span><span class="st">TIME&quot;</span>,<span class="st">&quot;END</span><span class="ch">\n</span><span class="st">Q3&quot;</span>,<span class="st">&quot;FINAL&quot;</span>),</span>
+<span id="cb11-27"><a href="#cb11-27"></a>                       <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">3600</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">900</span>),</span>
+<span id="cb11-28"><a href="#cb11-28"></a>                       <span class="dt">limits=</span><span class="kw">c</span>(<span class="dv">3700</span>,x_max<span class="dv">-490</span>)) <span class="op">+</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="st">    </span><span class="kw">scale_y_continuous</span>(<span class="dt">labels=</span><span class="kw">c</span>(<span class="kw">glue</span>(<span class="st">&quot;{game$home_abr} 100%&quot;</span>),</span>
+<span id="cb11-30"><a href="#cb11-30"></a>                                <span class="kw">glue</span>(<span class="st">&quot;{game$home_abr} 75%&quot;</span>),</span>
+<span id="cb11-31"><a href="#cb11-31"></a>                                <span class="st">&quot;50%&quot;</span>,</span>
+<span id="cb11-32"><a href="#cb11-32"></a>                                <span class="kw">glue</span>(<span class="st">&quot;{game$away_abr} 75%&quot;</span>),</span>
+<span id="cb11-33"><a href="#cb11-33"></a>                                <span class="kw">glue</span>(<span class="st">&quot;{game$away_abr} 100%&quot;</span>)),</span>
+<span id="cb11-34"><a href="#cb11-34"></a>                       <span class="dt">breaks=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="fl">0.25</span>,<span class="fl">0.5</span>,<span class="fl">0.75</span>,<span class="dv">1</span>),</span>
+<span id="cb11-35"><a href="#cb11-35"></a>                       <span class="dt">limits=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="op">+</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">clip =</span> <span class="st">&quot;off&quot;</span>) <span class="op">+</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;&quot;</span>) <span class="op">+</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="st">    </span><span class="kw">ylab</span>(<span class="st">&quot;&quot;</span>) <span class="op">+</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="st">    </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="kw">glue</span>(<span class="st">&quot;Win Probability Chart: {game$season} Week {game$week} {game$away_team} @ {game$home_team}&quot;</span>),</span>
+<span id="cb11-40"><a href="#cb11-40"></a>         <span class="dt">caption=</span><span class="st">&quot;Data from cfbscrapR, Visualization by @LeeSharpeNFL, Adapted for CFB by @JaredDLee&quot;</span>) <span class="op">+</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="st">    </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb11-42"><a href="#cb11-42"></a>  </span>
+<span id="cb11-43"><a href="#cb11-43"></a>  <span class="co"># score display </span></span>
+<span id="cb11-44"><a href="#cb11-44"></a>  away_score &lt;-<span class="st"> </span><span class="kw">max</span>(frm_data<span class="op">$</span>away_score)</span>
+<span id="cb11-45"><a href="#cb11-45"></a>  home_score &lt;-<span class="st"> </span><span class="kw">max</span>(frm_data<span class="op">$</span>home_score)</span>
+<span id="cb11-46"><a href="#cb11-46"></a>  </span>
+<span id="cb11-47"><a href="#cb11-47"></a>  <span class="co"># clock display</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a>  qtr &lt;-<span class="st"> </span><span class="kw">case_when</span>(</span>
+<span id="cb11-49"><a href="#cb11-49"></a>    <span class="kw">max</span>(frm_data<span class="op">$</span>qtr) <span class="op">==</span><span class="st"> </span><span class="dv">1</span> <span class="op">~</span><span class="st"> &quot;1st&quot;</span>,</span>
+<span id="cb11-50"><a href="#cb11-50"></a>    <span class="kw">max</span>(frm_data<span class="op">$</span>qtr) <span class="op">==</span><span class="st"> </span><span class="dv">2</span> <span class="op">~</span><span class="st"> &quot;2nd&quot;</span>,</span>
+<span id="cb11-51"><a href="#cb11-51"></a>    <span class="kw">max</span>(frm_data<span class="op">$</span>qtr) <span class="op">==</span><span class="st"> </span><span class="dv">3</span> <span class="op">~</span><span class="st"> &quot;3rd&quot;</span>,</span>
+<span id="cb11-52"><a href="#cb11-52"></a>    <span class="kw">max</span>(frm_data<span class="op">$</span>qtr) <span class="op">==</span><span class="st"> </span><span class="dv">4</span> <span class="op">~</span><span class="st"> &quot;4th&quot;</span>,</span>
+<span id="cb11-53"><a href="#cb11-53"></a>    <span class="kw">max</span>(frm_data<span class="op">$</span>qtr) <span class="op">==</span><span class="st"> </span><span class="dv">5</span> <span class="op">~</span><span class="st"> &quot;OT&quot;</span>,</span>
+<span id="cb11-54"><a href="#cb11-54"></a>    <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span><span class="kw">as.character</span>(<span class="kw">max</span>(frm_data<span class="op">$</span>qtr))</span>
+<span id="cb11-55"><a href="#cb11-55"></a>  )</span>
+<span id="cb11-56"><a href="#cb11-56"></a>  clock &lt;-<span class="st"> </span><span class="kw">tail</span>(frm_data<span class="op">$</span>time,<span class="dv">1</span>)</span>
+<span id="cb11-57"><a href="#cb11-57"></a>  clock &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">substr</span>(clock,<span class="dv">1</span>,<span class="dv">1</span>) <span class="op">==</span><span class="st"> &quot;0&quot;</span>,<span class="kw">substr</span>(clock,<span class="dv">2</span>,<span class="dv">100</span>),clock)</span>
+<span id="cb11-58"><a href="#cb11-58"></a>  clock &lt;-<span class="st"> </span><span class="kw">paste0</span>(qtr,<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>,clock)</span>
+<span id="cb11-59"><a href="#cb11-59"></a>  clock &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">grepl</span>(<span class="st">&quot;FINAL&quot;</span>,<span class="kw">tail</span>(frm_data<span class="op">$</span>time,<span class="dv">1</span>)),<span class="kw">tail</span>(frm_data<span class="op">$</span>time,<span class="dv">1</span>),clock)</span>
+<span id="cb11-60"><a href="#cb11-60"></a>  </span>
+<span id="cb11-61"><a href="#cb11-61"></a>  <span class="co"># add score and clock to plot</span></span>
+<span id="cb11-62"><a href="#cb11-62"></a>  frm_plot &lt;-<span class="st"> </span>frm_plot <span class="op">+</span><span class="st"> </span></span>
+<span id="cb11-63"><a href="#cb11-63"></a><span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>,<span class="dt">x=</span><span class="op">-</span>x_score,<span class="dt">y=</span><span class="fl">0.71</span>,<span class="dt">label=</span>away_score,<span class="dt">color=</span>game<span class="op">$</span>away_color,<span class="dt">size=</span><span class="dv">8</span>) <span class="op">+</span></span>
+<span id="cb11-64"><a href="#cb11-64"></a><span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>,<span class="dt">x=</span><span class="op">-</span>x_score,<span class="dt">y=</span><span class="fl">0.29</span>,<span class="dt">label=</span>home_score,<span class="dt">color=</span>game<span class="op">$</span>home_color,<span class="dt">size=</span><span class="dv">8</span>) <span class="op">+</span></span>
+<span id="cb11-65"><a href="#cb11-65"></a><span class="st">    </span><span class="kw">annotate</span>(<span class="st">&quot;text&quot;</span>,<span class="dt">x=</span><span class="op">-</span>x_score,<span class="dt">y=</span><span class="fl">0.50</span>,<span class="dt">label=</span>clock,<span class="dt">color=</span><span class="st">&quot;#000000&quot;</span>,<span class="dt">size=</span><span class="dv">6</span>)</span>
+<span id="cb11-66"><a href="#cb11-66"></a>  </span>
+<span id="cb11-67"><a href="#cb11-67"></a>  <span class="co"># label key moments</span></span>
+<span id="cb11-68"><a href="#cb11-68"></a>  frm_labels &lt;-<span class="st"> </span>frm_data <span class="op">%&gt;%</span><span class="st"> </span></span>
+<span id="cb11-69"><a href="#cb11-69"></a><span class="st">    </span><span class="kw">filter</span>(text <span class="op">!=</span><span class="st"> &quot;&quot;</span>)</span>
+<span id="cb11-70"><a href="#cb11-70"></a>  frm_plot &lt;-<span class="st"> </span>frm_plot <span class="op">+</span></span>
+<span id="cb11-71"><a href="#cb11-71"></a><span class="st">    </span><span class="kw">geom_point</span>(frm_labels,<span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">x=</span>s,<span class="dt">y=</span>wp),</span>
+<span id="cb11-72"><a href="#cb11-72"></a>               <span class="dt">color=</span><span class="st">&quot;#000000&quot;</span>,<span class="dt">size=</span><span class="dv">2</span>,<span class="dt">show.legend=</span><span class="ot">FALSE</span>) <span class="op">+</span></span>
+<span id="cb11-73"><a href="#cb11-73"></a><span class="st">    </span><span class="kw">geom_segment</span>(frm_labels,<span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">x=</span>x_text,<span class="dt">xend=</span>s,<span class="dt">y=</span>y_text,<span class="dt">yend=</span>wp),</span>
+<span id="cb11-74"><a href="#cb11-74"></a>                 <span class="dt">linetype=</span><span class="st">&quot;dashed&quot;</span>,<span class="dt">color=</span><span class="st">&quot;#000000&quot;</span>,<span class="dt">na.rm=</span><span class="ot">TRUE</span>) <span class="op">+</span></span>
+<span id="cb11-75"><a href="#cb11-75"></a><span class="st">    </span><span class="kw">geom_label</span>(frm_labels,<span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">x=</span>x_text,<span class="dt">y=</span>y_text,<span class="dt">label=</span>text),</span>
+<span id="cb11-76"><a href="#cb11-76"></a>               <span class="dt">size=</span><span class="dv">3</span>,<span class="dt">color=</span><span class="st">&quot;#000000&quot;</span>,<span class="dt">na.rm=</span><span class="ot">TRUE</span>,<span class="dt">alpha =</span> <span class="fl">0.8</span>)</span>
+<span id="cb11-77"><a href="#cb11-77"></a>  </span>
+<span id="cb11-78"><a href="#cb11-78"></a>  <span class="co"># plot the frame</span></span>
+<span id="cb11-79"><a href="#cb11-79"></a>  <span class="kw">plot</span>(frm_plot,<span class="dt">width=</span><span class="fl">12.5</span>,<span class="dt">height=</span><span class="fl">6.47</span>,<span class="dt">dpi=</span><span class="dv">500</span>)</span>
+<span id="cb11-80"><a href="#cb11-80"></a>}</span></code></pre></div>
+<p>Let’s test our function to make sure the plot looks like how we want it by running our function with 6 minutes left in the game.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">#draw_frame(360)</span></span></code></pre></div>
+<p><a href="https://kazink36.github.io/images/animated_wp_frame_ex.png">Looks great</a>, so next we create the <code>draw_game()</code> function which will draw every frame for our GIF.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>draw_game &lt;-<span class="st"> </span><span class="cf">function</span>()</span>
+<span id="cb13-2"><a href="#cb13-2"></a>{</span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="kw">lapply</span>(wp_data<span class="op">$</span>s, <span class="cf">function</span>(n_sec)</span>
+<span id="cb13-4"><a href="#cb13-4"></a>  { </span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="kw">draw_frame</span>(n_sec)</span>
+<span id="cb13-6"><a href="#cb13-6"></a>  })</span>
+<span id="cb13-7"><a href="#cb13-7"></a>  <span class="kw">print</span>(<span class="st">&quot;Plotting frames for pause&quot;</span>)</span>
+<span id="cb13-8"><a href="#cb13-8"></a>  <span class="kw">replicate</span>(<span class="dv">40</span>,<span class="kw">draw_frame</span>(<span class="kw">min</span>(wp_data<span class="op">$</span>s)))</span>
+<span id="cb13-9"><a href="#cb13-9"></a>  <span class="kw">print</span>(<span class="st">&quot;Assembling plots into a GIF&quot;</span>)</span>
+<span id="cb13-10"><a href="#cb13-10"></a>}</span></code></pre></div>
+</div>
+<div id="animating" class="section level2">
+<h2>Animating</h2>
+<p>Finally, we run our <code>draw_game()</code> function inside of <code>saveGIF()</code>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a><span class="co"># saveGIF(draw_game(),interval=0.1,movie.name=&quot;animated_wp.gif&quot;)</span></span></code></pre></div>
+<p><a href="https://kazink36.github.io/images/animated_wp_ex.gif">Result</a></p>
+<p>This process takes awhile, about 3 minutes on my computer. We can also re-size our GIF using the <code>ani.width</code>, <code>ani.height</code> and <code>ani.res</code> parameters. I like to make my plots wider and at higher resolution, but be careful, this will drastically increase the rendering time and the file size.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="co"># saveGIF(draw_game(),interval=0.1,movie.name=&quot;animated_wp_wide.gif&quot;,</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="co">#         ani.width = 1000,ani.height = 650,ani.res = 110)</span></span></code></pre></div>
+<p><a href="https://kazink36.github.io/images/animated_wp_ex_wide.gif">Result</a></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

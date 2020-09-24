@@ -11,7 +11,7 @@
 
 ### A.I. Sports And College Football
 
--- [Making Animated Win Probability Charts with cfbscrapR](https://saiemgilani.github.io/cfbscrapR/articles/Animated_WP_Plotting.html)
+- [Making Animated Win Probability Charts with cfbscrapR](https://saiemgilani.github.io/cfbscrapR/articles/Animated_WP_Plotting.html)
 <img src="images/animated_wp_ex_wide.gif?raw=true"/>
 
 - [Applying Puntalytics's RERUN Model to College Football](/pdf/punts.html)
